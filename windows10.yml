@@ -1,0 +1,22 @@
+services:
+  windows:
+    image: dockurr/windows:latest
+    container_name: windows
+    restart: unless-stopped
+    privileged: true
+
+    environment:
+      VERSION: "10"
+      CPU_CORES: "4"
+      RAM_SIZE: "8G"
+      DISK_SIZE: "24G"
+      USERNAME: "Zander"
+      PASSWORD: "Zander"
+    volumes:
+      - ./windows:/storage
+      - ./scripts:/oem
+
+    ports:
+      - "8006:8006"
+      - "5900:5900"
+      - "3389:3389"
