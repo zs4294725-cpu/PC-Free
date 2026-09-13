@@ -1,0 +1,62 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "docker start": true,
+        "docker stop": true,
+        "touch": true,
+        "whoami": true,
+        "/^cd /workspaces/PC-Free && sudo touch /tmp/windows/windows\\.boot && sudo ls -l /tmp/windows/windows\\.boot && sudo docker start windows && echo '--- recent logs ---' && sudo docker logs windows --tail 150$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "docker restart": true,
+        "fdisk": true,
+        "xxd": true,
+        "strings": true,
+        "cp": true,
+        "/^cd /workspaces/PC-Free && docker stop windows \\|\\| true && sudo rm -rf /tmp/windows/\\* && sudo cp custom\\.xml /tmp/windows/custom\\.xml && docker compose -f windows10\\.yml up -d windows && echo '--- rebuild started ---' && docker logs --tail 160 windows$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "command": true,
+        "set": true,
+        "mkdir": true,
+        "losetup": true,
+        "/^python3 - <<'PY'\nfrom pathlib import Path\np=Path\\('/tmp/windows/data\\.img'\\)\nsize=p\\.stat\\(\\)\\.st_size\nprint\\('size', size\\)\n# read first 2MB in chunks\nbuf=p\\.read_bytes\\(\\)\\[:2\\*1024\\*1024\\]\nprint\\('bytes loaded', len\\(buf\\)\\)\n# print signature positions for 'EFI PART' and 'NTFS'\nfor needle in \\[b'EFI PART', b'NTFS    ', b'MSDOS', b'BOOTMGR'\\]:\n    idx=buf\\.find\\(needle\\)\n    print\\(needle, idx\\)\n# dump first 512 bytes \\(MBR/GPT\\) from start and around LBA 1 and 2 if possible\nfor off in \\[0, 512, 1024, 4096, 1048576\\]:\n    chunk=buf\\[off:off\\+256\\]\n    print\\('off', off, chunk\\[:128\\]\\.hex\\(\\)\\)\nPY$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "modprobe": true,
+        "uname": true,
+        "lsblk": true,
+        "rsync": true,
+        "/^set -e\nsudo -n bash -lc 'mkdir -p /mnt/sdc1/windows && cp -a /workspaces/PC-Free/windows/\\. /mnt/sdc1/windows/'\nfind /mnt/sdc1/windows -maxdepth 1 -mindepth 1 \\| sed 's#\\^#/#' \\| sort\ncd /workspaces/PC-Free\nsudo -n docker compose -f windows10\\.yml up -d --force-recreate windows\nsleep 5\nsudo -n docker inspect windows --format '\\{\\{json \\.Mounts\\}\\}'$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "qemu-img": true,
+        "/^python3 - <<'PY'\nimport struct\nfrom pathlib import Path\npath=Path\\('/mnt/sdc1/windows/data\\.img'\\)\nwith path\\.open\\('rb'\\) as f:\n    f\\.seek\\(512\\)\n    gpt=f\\.read\\(512\\)\nprint\\('gpt header bytes',gpt\\[:16\\]\\)\n# parse protective mbr\nwith path\\.open\\('rb'\\) as f:\n    mbr=f\\.read\\(512\\)\nprint\\('mbr signature', mbr\\[510:512\\]\\.hex\\(\\)\\)\n# read GPT header at LBA1\nwith path\\.open\\('rb'\\) as f:\n    f\\.seek\\(512\\)\n    data=f\\.read\\(512\\)\nprint\\('gpt bytes', data\\[:64\\]\\.hex\\(\\)\\)\n# Parse GPT header fields known offsets\nsignature=data\\[:8\\]\nprint\\('signature', signature\\)\nrevision=struct\\.unpack\\('<I', data\\[8:12\\]\\)\\[0\\]\nprint\\('revision', hex\\(revision\\)\\)\nheadersz=struct\\.unpack\\('<I', data\\[12:16\\]\\)\\[0\\]\nprint\\('headersz', headersz\\)\ncurrent_lba=struct\\.unpack\\('<Q', data\\[24:32\\]\\)\\[0\\]\nbackup_lba=struct\\.unpack\\('<Q', data\\[32:40\\]\\)\\[0\\]\nfirst_usable=struct\\.unpack\\('<Q', data\\[40:48\\]\\)\\[0\\]\nlast_usable=struct\\.unpack\\('<Q', data\\[48:56\\]\\)\\[0\\]\nprint\\('current_lba', current_lba, 'backup_lba', backup_lba, 'first_usable', first_usable, 'last_usable', last_usable\\)\n# parse partition entries from LBA2 \\(assuming 128 entries of 128 bytes\\)\nwith path\\.open\\('rb'\\) as f:\n    f\\.seek\\(2\\*512\\)\n    entries=f\\.read\\(128\\*128\\)\n# print each entry type GUID and first sector\nfor i in range\\(128\\):\n    off=i\\*128\n    e=entries\\[off:off\\+128\\]\n    type_guid=e\\[0:16\\]\\.hex\\(\\)\n    part_guid=e\\[16:32\\]\\.hex\\(\\)\n    first_lba=struct\\.unpack\\('<Q', e\\[32:40\\]\\)\\[0\\]\n    last_lba=struct\\.unpack\\('<Q', e\\[40:48\\]\\)\\[0\\]\n    attr=struct\\.unpack\\('<Q', e\\[48:56\\]\\)\\[0\\]\n    name=e\\[56:128\\]\\.decode\\('utf-16le', errors='ignore'\\)\\.rstrip\\('\\\\x00'\\)\n    if first_lba or last_lba:\n        print\\(i, type_guid, first_lba, last_lba, attr, repr\\(name\\)\\)\nPY$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^python3 - <<'PY'\nfrom pathlib import Path\np=Path\\('/mnt/sdc1/windows/data\\.img'\\)\n# check offsets for partition 2 and EFI partition for signatures\nfor start in \\[2048, 264192, 526336\\]:\n    off=start\\*512\n    with p\\.open\\('rb'\\) as f:\n        f\\.seek\\(off\\)\n        data=f\\.read\\(4096\\)\n    print\\('partition start', start, 'first 128 bytes', data\\[:128\\]\\.hex\\(\\)\\)\n    for needle in \\[b'NTFS', b'EFI', b'MBR', b'BOOTMGR', b'MSDOS', b'X86'\\]:\n        idx=data\\.find\\(needle\\)\n        if idx!=-1:\n            print\\(' found', needle, 'at', idx\\)\nPY$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^python - <<'PY'\nimport os, subprocess, sys\npath='/mnt/sdc1/windows/win10x64\\.iso'\nprint\\('exists', os\\.path\\.exists\\(path\\), os\\.path\\.getsize\\(path\\)\\)\nprint\\('searching iso contents\\.\\.\\.'\\)\nres = subprocess\\.run\\(\\['bash','-lc',\"bsdtar -tf '/mnt/sdc1/windows/win10x64\\.iso' \\| grep -i 'autounattend\\\\\\|install\\.bat' \\| head -200\"\\], capture_output=True, text=True\\)\nprint\\(res\\.stdout\\)\nprint\\('stderr', res\\.stderr\\)\nPY$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^python - <<'PY'\nimport subprocess, os, textwrap\niso='/mnt/sdc1/windows/win10x64\\.iso'\nprint\\('listing boot\\.wim in iso\\.\\.\\.'\\)\nres=subprocess\\.run\\(\\['bash','-lc',f\"bsdtar -tf '\\{iso\\}' \\| grep 'boot\\.wim\\\\\\|autounattend\\\\\\|install\\.bat' \\| head -200\"\\], capture_output=True, text=True\\)\nprint\\(res\\.stdout\\)\nprint\\('stderr:', res\\.stderr\\)\nPY$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^python - <<'PY'\nimport os, subprocess, tempfile\niso='/mnt/sdc1/windows/win10x64\\.iso'\n# extract boot\\.wim to temp and inspect contents\nwith tempfile\\.TemporaryDirectory\\(\\) as td:\n    subprocess\\.run\\(\\['bash','-lc',f\"cd '\\{td\\}' && bsdtar -xf '\\{iso\\}' sources/boot\\.wim >/dev/null 2>&1 \\|\\| true && ls -la && echo '--- boot\\.wim listing ---' && bsdtar -tf 'sources/boot\\.wim' \\| grep -i 'autounattend\\\\\\|install\\.bat\\\\\\|xml' \\| head -200\"\\], capture_output=True, text=True\\)\n    print\\(subprocess\\.run\\(\\['bash','-lc',f\"cd '\\{td\\}' && bsdtar -tf 'sources/boot\\.wim' \\| sed -n '1,200p'\"\\], capture_output=True, text=True\\)\\.stdout\\)\nPY$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^sudo -n true && echo ok \\|\\| echo no-sudo$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

@@ -1,0 +1,9 @@
+!/bin/bash
+
+echo "Stopping Windows VM..."
+docker Stop windowsn
+
+echo "Starting Windows VM..."
+Docker start windows
+
+echo "Windows VM started."

@@ -2,21 +2,23 @@ services:
   windows:
     image: dockurr/windows:latest
     container_name: windows
-    restart: unless-stopped
+    restart: "unless-stopped"
     privileged: true
 
     environment:
       VERSION: "10"
       CPU_CORES: "4"
       RAM_SIZE: "8G"
-      DISK_SIZE: "24G"
+      DISK_SIZE: "64G"
+      DISK_TYPE: "scsi"
+      ARGUMENTS: "-boot menu=on"
+      MANUAL: "N"
+      AUTOLOGIN: "N"
       USERNAME: "Zander"
       PASSWORD: "Zander"
     volumes:
-      - ./windows:/storage
+      - /mnt/sdc1/windows:/storage
       - ./scripts:/oem
-
     ports:
       - "8006:8006"
-      - "5900:5900"
       - "3389:3389"
